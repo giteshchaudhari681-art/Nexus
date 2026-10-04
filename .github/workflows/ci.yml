@@ -1,0 +1,41 @@
+name: Nexus CI Foundation
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+
+jobs:
+  repository-validation:
+    name: Repository Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Verify Foundation Files
+        run: |
+          echo "Checking required files..."
+          files=( "README.md" ".gitignore" ".env.example" "docs/ENGINEERING_CONSTITUTION.md" "docs/PR_BOUNDARY.md" )
+          for file in "${files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "Error: Missing $file"
+              exit 1
+            fi
+          done
+          echo "All foundation files present."
+
+  secret-scanning:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
