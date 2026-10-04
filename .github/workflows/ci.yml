@@ -1,4 +1,4 @@
-name: Nexus CI Foundation
+name: Nexus CI
 
 on:
   push:
@@ -39,3 +39,35 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  gateway-core-checks:
+    name: Gateway Core CI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./gateway-core
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './gateway-core/package-lock.json'
+          
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+        
+      - name: Lint
+        run: npm run lint
+        
+      - name: Type Check
+        run: npx tsc --noEmit
+        
+      - name: Run Tests
+        run: npm run test
+        
+      - name: Build
+        run: npm run build
